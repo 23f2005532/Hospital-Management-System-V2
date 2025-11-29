@@ -1,0 +1,120 @@
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import authAPI from "@/api/auth";
+import { useAuthStore } from "@/store/auth";
+
+const email = ref("");
+const password = ref("");
+const error = ref("");
+const loading = ref(false);
+
+const auth = useAuthStore();
+const router = useRouter();
+
+const login = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const res = await authAPI.login({
+      email: email.value,
+      password: password.value,
+      role: "patient"
+    });
+
+    auth.setAuth(res.data.token, "patient");
+    router.push("/patient/dashboard");
+
+  } catch (err) {
+    error.value = "Invalid patient credentials";
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
+
+<template>
+  <div class="page patient-page">
+    <div class="card">
+      <h2>Patient Login</h2>
+      <p class="subtitle">Access your appointments & medical history</p>
+
+      <input v-model="email" placeholder="Email" />
+      <input v-model="password" type="password" placeholder="Password" />
+
+      <button @click="login" :disabled="loading">
+        {{ loading ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <p class="error" v-if="error">{{ error }}</p>
+
+      <router-link to="/register" class="link">New patient? Register here</router-link>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.patient-page {
+  background: linear-gradient(135deg, #a8dadc, #457b9d);
+  height: calc(100vh - 64px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  background: white;
+  width: 360px;
+  padding: 28px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+h2 {
+  margin: 0 0 8px;
+  color: #1d3557;
+}
+
+.subtitle {
+  margin-bottom: 20px;
+  color: #457b9d;
+  font-size: 14px;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #cfd8e1;
+}
+
+button {
+  margin-top: 16px;
+  width: 100%;
+  padding: 10px;
+  background: #1d3557;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #15263c;
+}
+
+.error {
+  margin-top: 12px;
+  color: red;
+}
+
+.link {
+  margin-top: 14px;
+  display: block;
+  color: #457b9d;
+  font-size: 14px;
+}
+</style>
