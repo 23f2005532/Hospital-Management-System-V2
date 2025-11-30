@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 
 const loading = ref(true);
 const doctors = ref([]);
-const filter = ref("ALL"); // ALL, VERIFIED, UNVERIFIED
+const filter = ref("ALL");
 
 const fetchDoctors = async () => {
   loading.value = true;
@@ -36,7 +36,7 @@ const verifyDoctor = async (id) => {
   <div class="page">
     <h2>Doctor Verification</h2>
 
-    <!-- Filters -->
+
     <div class="filters">
       <select v-model="filter">
         <option value="ALL">All</option>
@@ -69,11 +69,7 @@ const verifyDoctor = async (id) => {
             </span>
           </td>
           <td>
-            <button
-              class="btn-verify"
-              v-if="!d.is_verified"
-              @click="verifyDoctor(d.id)"
-            >
+            <button class="btn-verify" v-if="!d.is_verified" @click="verifyDoctor(d.id)">
               Verify
             </button>
 
@@ -86,13 +82,21 @@ const verifyDoctor = async (id) => {
 </template>
 
 <style scoped>
-.page { padding: 20px; }
-.filters { margin-bottom: 20px; }
+.page {
+  padding: 20px;
+}
+
+.filters {
+  margin-bottom: 20px;
+}
+
 .verification-table {
   width: 100%;
   border-collapse: collapse;
 }
-.verification-table th, .verification-table td {
+
+.verification-table th,
+.verification-table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
 }
@@ -105,8 +109,13 @@ const verifyDoctor = async (id) => {
   cursor: pointer;
 }
 
-.yes { color: #16a34a; }
-.no { color: #dc2626; }
+.yes {
+  color: #16a34a;
+}
+
+.no {
+  color: #dc2626;
+}
 
 .verified-badge {
   color: #16a34a;

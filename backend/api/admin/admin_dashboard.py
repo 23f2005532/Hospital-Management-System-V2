@@ -1,54 +1,60 @@
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt
-from database import get_db_session
-from models import User, UserRole, Appointment, DoctorProfile
 from datetime import date
 
-# Utility: Validate admin access based on JWT claims
+from database import get_db_session
+from models import (
+    User, UserRole,
+    Appointment, AppointmentStatus,
+    DoctorProfile, PatientProfile
+)
+
 def require_admin():
     claims = get_jwt()
-    role = claims.get("role")  # e.g. "ADMIN" / "DOCTOR" / "PATIENT" or lowercase
-    if not role:
-        return False
-    return role.upper() == "ADMIN"
-
+    role = claims.get("role")
+    return role and role.upper() == "ADMIN"
 
 class AdminDashboard(Resource):
+
     @jwt_required()
     def get(self):
-        # Check that the caller is an admin
         if not require_admin():
             return {"message": "Admin access only"}, 403
 
         session = get_db_session()
 
-        # Total users by role
-        total_doctors = session.query(User).filter_by(role=UserRole.DOCTOR).count()
-        total_patients = session.query(User).filter_by(role=UserRole.PATIENT).count()
-
-        # Appointments stats
-        total_appointments = session.query(Appointment).count()
-
-        completed = (
-            session.query(Appointment)
-            .filter(Appointment.status == "COMPLETED")
+        total_doctors = (
+            session.query(User)
+            .filter(User.role == UserRole.DOCTOR)
             .count()
         )
 
-        today_count = (
+        total_patients = (
+            session.query(User)
+            .filter(User.role == UserRole.PATIENT)
+            .count()
+        )
+
+        total_appointments = session.query(Appointment).count()
+
+        completed_appointments = (
+            session.query(Appointment)
+            .filter(Appointment.status == AppointmentStatus.COMPLETED)
+            .count()
+        )
+
+        today_appointments = (
             session.query(Appointment)
             .filter(Appointment.date == date.today())
             .count()
         )
 
-        # Doctor Verification Pending
-        pending_verification = (
+        pending_verifications = (
             session.query(DoctorProfile)
             .filter(DoctorProfile.is_verified == False)
             .count()
         )
 
-        # Recent 10 appointments (newest first)
         recent = (
             session.query(Appointment)
             .order_by(Appointment.date.desc(), Appointment.time.desc())
@@ -56,26 +62,28 @@ class AdminDashboard(Resource):
             .all()
         )
 
-        recent_list = [
-            {
+        recent_list = []
+        for a in recent:
+            doctor = session.query(DoctorProfile).get(a.doctor_id)
+            patient = session.query(PatientProfile).get(a.patient_id)
+
+            recent_list.append({
                 "id": a.id,
-                "doctor": a.doctor.user.name if a.doctor and a.doctor.user else "",
-                "patient": a.patient.user.name if a.patient and a.patient.user else "",
-                "date": str(a.date),
-                "time": str(a.time),
-                "status": a.status,
-            }
-            for a in recent
-        ]
+                "doctor": doctor.full_name if doctor else None,
+                "patient": patient.user.name if patient and patient.user else None,
+                "date": a.date.isoformat(),
+                "time": a.time.strftime("%H:%M"),
+                "status": a.status.value,
+            })
 
         return {
             "stats": {
                 "doctors": total_doctors,
                 "patients": total_patients,
                 "appointments": total_appointments,
-                "completed": completed,
-                "pendingVerifications": pending_verification,
-                "today": today_count,
+                "completed": completed_appointments,
+                "pendingVerifications": pending_verifications,
+                "today": today_appointments,
             },
             "recentAppointments": recent_list,
         }, 200

@@ -1,8 +1,13 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import authAPI from "@/api/auth";
+import authAPI from "@/api/auth/auth";
 import { useAuthStore } from "@/store/auth";
+import { useToast } from "@/utils/useToast";
+
+import { Shield, Mail, Lock } from "lucide-vue-next";
+
+const toast = useToast();
 
 const email = ref("");
 const password = ref("");
@@ -20,14 +25,15 @@ const login = async () => {
     const res = await authAPI.login({
       email: email.value,
       password: password.value,
-      role: "admin"
+      role: "admin",
     });
 
-    auth.setAuth(res.data.token, "admin");
+    auth.setAuth(res.data.token, "admin", res.data.user);
+    toast.success("Login Successful");
     router.push("/admin/dashboard");
-
   } catch (err) {
     error.value = "Invalid admin credentials";
+    toast.error("Login Failed");
   } finally {
     loading.value = false;
   }
@@ -35,79 +41,165 @@ const login = async () => {
 </script>
 
 <template>
-  <div class="page admin-page">
-    <div class="card">
-      <h2>Admin Login</h2>
-      <p class="subtitle">System control panel</p>
+  <div class="admin-login-page">
 
-      <input v-model="email" placeholder="Email" />
-      <input v-model="password" type="password" placeholder="Password" />
+    <div class="login-card">
+      <div class="icon-box">
+        <Shield class="shield-icon" />
+      </div>
+
+      <h2>Admin Login</h2>
+      <p class="subtitle">Access your control panel securely</p>
+
+      <div class="input-group">
+        <Mail class="input-icon" />
+        <input v-model="email" placeholder="Email" type="email" />
+      </div>
+
+      <div class="input-group">
+        <Lock class="input-icon" />
+        <input v-model="password" placeholder="Password" type="password" />
+      </div>
 
       <button @click="login" :disabled="loading">
-        {{ loading ? 'Logging in...' : 'Login' }}
+        {{ loading ? "Logging in..." : "Login" }}
       </button>
 
-      <p class="error" v-if="error">{{ error }}</p>
+      <p v-if="error" class="error">{{ error }}</p>
     </div>
+
   </div>
 </template>
 
 <style scoped>
-.admin-page {
-  background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
-  height: calc(100vh - 64px);
+.admin-login-page {
+  height: 100vh;
+  background: radial-gradient(circle at top, #1f2937, #0f172a 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+
+.login-card {
+  width: 380px;
+  padding: 34px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 35px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  color: #e5e7eb;
+  animation: fadeIn 0.4s ease;
+}
+
+
+.icon-box {
+  background: rgba(255, 255, 255, 0.08);
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 18px auto;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.card {
-  width: 360px;
-  padding: 28px;
-  background: #2b2b2b;
-  color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  text-align: center;
+.shield-icon {
+  width: 38px;
+  height: 38px;
+  color: #60a5fa;
 }
 
+
 h2 {
-  margin: 0 0 10px;
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
 }
 
 .subtitle {
-  margin-bottom: 20px;
+  opacity: 0.75;
+  margin-top: 6px;
+  margin-bottom: 22px;
   font-size: 14px;
-  opacity: 0.7;
+}
+
+
+.input-group {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #9ca3af;
 }
 
 input {
-  width: 100%;
-  padding: 10px 12px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #1e1e1e;
-  color: white;
+  width: 90%;
+  padding: 12px 12px 12px 40px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #e5e7eb;
+  font-size: 14px;
 }
 
+input:focus {
+  border-color: #60a5fa;
+  outline: none;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+
 button {
-  margin-top: 16px;
   width: 100%;
-  padding: 10px;
-  background: #e63946;
-  color: white;
+  padding: 12px;
+  margin-top: 6px;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
+  background: #3b82f6;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 button:hover {
-  background: #c5303a;
+  background: #2563eb;
 }
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
 .error {
   margin-top: 12px;
-  color: #ff8383;
+  color: #f87171;
+  font-size: 14px;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>

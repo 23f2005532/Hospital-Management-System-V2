@@ -18,6 +18,6 @@ export default {
   },
 
   togglePatientStatus(id) {
-    return axios.post(`/admin/patients/${id}/toggle`);
+    return axios.put(`/admin/patients/${id}/toggle`);
   }
 };

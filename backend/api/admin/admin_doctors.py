@@ -4,12 +4,9 @@ from database import get_db_session
 from models import DoctorProfile, User, UserRole, Specialization, DoctorAvailability
 from werkzeug.security import generate_password_hash
 
-
 def require_admin():
     return get_jwt().get("role", "").upper() == "ADMIN"
 
-
-# Parser for doctor creation/update
 doctor_parser = reqparse.RequestParser()
 doctor_parser.add_argument("full_name", type=str)
 doctor_parser.add_argument("email", type=str)
@@ -23,16 +20,10 @@ doctor_parser.add_argument("qualification", type=str)
 doctor_parser.add_argument("bio", type=str)
 doctor_parser.add_argument("consultation_fee", type=float)
 
-
-# ---------------------------------------------------------------------------
-# LIST + CREATE DOCTORS
-# ---------------------------------------------------------------------------
-
 class AdminDoctors(Resource):
 
     @jwt_required()
     def get(self):
-        """Return complete list of doctors"""
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -43,36 +34,37 @@ class AdminDoctors(Resource):
         for d in docs:
             result.append({
                 "id": d.id,
+                "full_fullname": d.full_name,
                 "full_name": d.full_name,
                 "email": d.user.email,
+                "phone": d.phone,
+                "documents": d.documents if hasattr(d, "documents") else None,
                 "specialization_id": d.specialization_id,
                 "specialization": d.specialization.name if d.specialization else "",
                 "experience_years": d.experience_years,
+                "qualification": d.qualification,
+                "bio": d.bio,
+                "consultation_fee": d.consultation_fee,
                 "is_verified": d.is_verified,
                 "is_active": d.is_active,
             })
 
         return result, 200
 
-
     @jwt_required()
     def post(self):
-        """Admin Creates Doctor + User account"""
         if not require_admin():
             return {"message": "Admin only"}, 403
 
         data = doctor_parser.parse_args()
         session = get_db_session()
 
-        # Validate required fields
         if not data["email"] or not data["password"]:
             return {"message": "Email and password required"}, 400
 
-        # Check duplicate email
         if session.query(User).filter_by(email=data["email"]).first():
             return {"message": "Email already exists"}, 400
 
-        # Create User
         user = User(
             name=data["full_name"],
             email=data["email"],
@@ -82,7 +74,6 @@ class AdminDoctors(Resource):
         session.add(user)
         session.flush()
 
-        # Create Doctor Profile
         doc = DoctorProfile(
             user_id=user.id,
             full_name=data["full_name"],
@@ -101,16 +92,10 @@ class AdminDoctors(Resource):
 
         return {"message": "Doctor created", "id": doc.id}, 201
 
-
-# ---------------------------------------------------------------------------
-# GET / UPDATE / DELETE SPECIFIC DOCTOR
-# ---------------------------------------------------------------------------
-
 class AdminDoctorDetail(Resource):
 
     @jwt_required()
     def get(self, doc_id):
-        """Fetch single doctor details"""
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -135,12 +120,11 @@ class AdminDoctorDetail(Resource):
             "consultation_fee": d.consultation_fee,
             "is_verified": d.is_verified,
             "is_active": d.is_active,
+            "documents": d.documents if hasattr(d, "documents") else None
         }, 200
-
 
     @jwt_required()
     def put(self, doc_id):
-        """Update doctor profile"""
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -152,7 +136,6 @@ class AdminDoctorDetail(Resource):
 
         data = doctor_parser.parse_args()
 
-        # Update user email & name
         if data["email"]:
             doc.user.email = data["email"]
 
@@ -160,11 +143,9 @@ class AdminDoctorDetail(Resource):
             doc.full_name = data["full_name"]
             doc.user.name = data["full_name"]
 
-        # Update password if provided
         if data["password"]:
             doc.user.password = generate_password_hash(data["password"])
 
-        # Update doctor fields
         for field in [
             "phone", "gender", "age", "specialization_id",
             "experience_years", "qualification", "bio",
@@ -177,10 +158,8 @@ class AdminDoctorDetail(Resource):
         session.commit()
         return {"message": "Doctor updated"}, 200
 
-
     @jwt_required()
     def delete(self, doc_id):
-        """Delete doctor + user"""
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -190,21 +169,15 @@ class AdminDoctorDetail(Resource):
         if not doc:
             return {"message": "Not found"}, 404
 
-        # Delete User + Doctor
         session.delete(doc.user)
         session.commit()
 
         return {"message": "Doctor deleted"}, 200
 
-
-# ---------------------------------------------------------------------------
-# VERIFY DOCTOR
-# ---------------------------------------------------------------------------
-
 class AdminDoctorVerify(Resource):
 
     @jwt_required()
-    def post(self, doc_id):
+    def put(self, doc_id):
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -219,15 +192,10 @@ class AdminDoctorVerify(Resource):
 
         return {"message": "Doctor verified"}, 200
 
-
-# ---------------------------------------------------------------------------
-# ACTIVATE / DEACTIVATE DOCTOR
-# ---------------------------------------------------------------------------
-
 class AdminDoctorToggleActive(Resource):
 
     @jwt_required()
-    def post(self, doc_id):
+    def put(self, doc_id):
         if not require_admin():
             return {"message": "Admin only"}, 403
 
@@ -240,11 +208,10 @@ class AdminDoctorToggleActive(Resource):
         doc.is_active = not doc.is_active
         session.commit()
 
-        return {"message": f"Doctor active={doc.is_active}"}, 200
-
-
+        return {"message": "Status updated", "is_active": doc.is_active}, 200
 
 class AdminDoctorAvailability(Resource):
+
     @jwt_required()
     def get(self, doc_id):
         if not require_admin():
@@ -252,19 +219,16 @@ class AdminDoctorAvailability(Resource):
 
         session = get_db_session()
         doc = session.query(DoctorProfile).get(doc_id)
+
         if not doc:
             return {"message": "Not found"}, 404
 
-        return [
-            {
-                "id": a.id,
-                "day": a.day,
-                "start": str(a.start),
-                "end": str(a.end),
-            }
-            for a in doc.availability
-        ], 200
-
+        return [{
+            "id": a.id,
+            "day": a.day,
+            "start": str(a.start),
+            "end": str(a.end),
+        } for a in doc.availability], 200
 
     @jwt_required()
     def post(self, doc_id):
@@ -283,10 +247,11 @@ class AdminDoctorAvailability(Resource):
 
         session.add(new_slot)
         session.commit()
+
         return {"message": "Slot added"}, 201
 
-
 class AdminDoctorAvailabilityDetail(Resource):
+
     @jwt_required()
     def delete(self, doc_id, slot_id):
         if not require_admin():
@@ -300,4 +265,5 @@ class AdminDoctorAvailabilityDetail(Resource):
 
         session.delete(slot)
         session.commit()
+
         return {"message": "Slot deleted"}, 200

@@ -1,44 +1,71 @@
+// ============================
+// VUE & STORE
+// ============================
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import Register from '@/views/auth/Register.vue'
-import Dashboard from '@/views/Dashboard.vue'
+
+// ============================
+// GENERAL PAGES
+// ============================
 import Home from '@/views/Home.vue'
-import MyAppointments from '@/views/Doctor/MyAppointments.vue'
+import AboutUs from '@/views/AboutUs.vue'
+import Contact from '@/views/Contact.vue'
+
+// ============================
+// AUTH PAGES
+// ============================
+import Register from '@/views/auth/Register.vue'
 import PatientLogin from '@/views/auth/PatientLogin.vue'
 import DoctorLogin from '@/views/auth/DoctorLogin.vue'
-import PatientDashboard from '@/views/Patient/PatientDashboard.vue'
-import BookAppointment from '@/views/Patient/BookAppointment.vue'
-import PatientAppointments from '@/views/Patient/PatientAppointments.vue'
-import PatientProfile from '@/views/Patient/PatientProfile.vue'
-import PatientRecords from '@/views/Patient/PatientRecords.vue'
 import AdminLogin from '@/views/auth/AdminLogin.vue'
-import AdminDashboard from '@/views/Admin/AdminDashboard.vue'
+
+// ============================
+// ADMIN PAGES
+// ============================
+import AdminDashboard from '@/views/admin/Admindashboard.vue'
 import DoctorsList from '@/views/Admin/doctors/DoctorsList.vue'
-import PatientList from '@/views/Admin/patients/PatientList.vue'
-import AppointmentsList from '@/views/Admin/appointments/AppointmentsList.vue'
 import AddDoctor from '@/views/Admin/doctors/AddDoctor.vue'
 import EditDoctor from '@/views/Admin/doctors/EditDoctor.vue'
+import PatientList from '@/views/Admin/patients/PatientList.vue'
 import PatientEdit from '@/views/Admin/patients/PatientEdit.vue'
+import AppointmentsList from '@/views/Admin/appointments/AppointmentsList.vue'
 import SpecializationList from '@/views/Admin/specializations/SpecializationList.vue'
 import SpecializationCreate from '@/views/Admin/specializations/SpecializationCreate.vue'
 import SpecializationEdit from '@/views/Admin/specializations/SpecializationEdit.vue'
 
+// ============================
+// PATIENT PAGES
+// ============================
+import PatientDashboard from '@/views/patient/Patientdashboard.vue'
+import BookAppointments from '@/views/patient/BookAppointments.vue'
+import MyAppointments from '@/views/patient/MyAppointments.vue'
+import Records from '@/views/patient/records.vue'
+import Profile from '@/views/patient/profile.vue'
+
+// ============================
+// DOCTOR PAGES
+// ============================
+import DoctorDashboard from '@/views/doctor/Doctordashboard.vue'
+import DoctorAvailability from '@/views/doctor/DoctorAvailability.vue'
+import DoctorAppointment from '@/views/doctor/DoctorAppointment.vue'
+
+
+// ============================
+// ROUTES
+// ============================
 const routes = [
-  // General Routes
+  // General
   { path: "/", component: Home },
-  { path: '/dashboard', component: Dashboard },
+  { path: "/about", component: AboutUs },
+  { path: "/contact", component: Contact },
 
-
-
-  // Auth Routes
+  // Auth
   { path: "/register", component: Register },
-  { path: "/login/patient", component: PatientLogin},
-  {path: "/login/doctor", component: DoctorLogin},
-  { path: "/login/admin", component: AdminLogin},
-  
-  
-  
-  // Admin Routes
+  { path: "/login/patient", component: PatientLogin },
+  { path: "/login/doctor", component: DoctorLogin },
+  { path: "/login/admin", component: AdminLogin },
+
+  // Admin
   { path: "/admin/dashboard", component: AdminDashboard },
   { path: "/admin/doctors", component: DoctorsList },
   { path: "/admin/doctors/add", component: AddDoctor },
@@ -50,54 +77,53 @@ const routes = [
   { path: "/admin/specializations/create", component: SpecializationCreate },
   { path: "/admin/specializations/:id/edit", component: SpecializationEdit },
 
-
-
-
-
-  // Doctor Routes
-  {
-    path: '/doctor/appointments',
-    component: MyAppointments,
-    meta: { role: 'doctor' },
-  },
-
-
-  // Patient Routes
+  // Patient
   { path: "/patient/dashboard", component: PatientDashboard },
-  { path: "/patient/book", component: BookAppointment },
-  { path: "/patient/appointments", component: PatientAppointments },
-  { path: "/patient/profile", component: PatientProfile },
-  { path: "/patient/records", component: PatientRecords },
-  
+  { path: "/patient/book", component: BookAppointments },
+  { path: "/patient/appointments", component: MyAppointments },
+  { path: "/patient/records", component: Records },
+  { path: "/patient/profile", component: Profile },
 
+  // Doctor
+  { path: "/doctor/dashboard", component: DoctorDashboard },
+  { path: "/doctor/availability", component: DoctorAvailability },
+  { path: "/doctor/appointments", component: DoctorAppointment },
 ]
 
+
+// ============================
+// ROUTER SETUP
+// ============================
 const router = createRouter({
   history: createWebHistory(),
   routes,
 })
 
+
+// ============================
+// NAVIGATION GUARD
+// ============================
 router.beforeEach((to, from, next) => {
-  const auth = useAuthStore();
-  const publicPages = ["/","/login/patient", "/login/doctor", "/login/admin", "/register"];
+  const auth = useAuthStore()
+  const publicPages = [
+    "/", "/login/patient", "/login/doctor", "/login/admin",
+    "/register", "/about", "/contact"
+  ]
 
-  // Allow public pages
   if (!auth.token && publicPages.includes(to.path)) {
-    return next();
+    return next()
   }
 
-  // Block protected pages
   if (!auth.token && !publicPages.includes(to.path)) {
-    return next("/");
+    return next("/")
   }
 
-  // Role-based protection
   if (to.meta.role && to.meta.role !== auth.role) {
-    return next("/dashboard");
+    return next("/dashboard")
   }
 
-  next();
-});
+  next()
+})
 
 
 export default router

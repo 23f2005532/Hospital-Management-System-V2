@@ -1,53 +1,69 @@
-<script setup></script>
+<script setup>
+import { useRouter } from "vue-router";
+import { Calendar, FolderOpen, FileText, User } from "lucide-vue-next";
+
+const router = useRouter();
+const go = (path) => router.push(path);
+</script>
 
 <template>
-  <section class="card">
-    <h3>Quick Actions</h3>
+  <div class="quick-box">
 
-    <div class="grid">
-      <button @click="$router.push('/patient/book')">
-        Book Appointment
-      </button>
-      <button @click="$router.push('/patient/appointments')">
-        View Appointments
-      </button>
-      <button @click="$router.push('/patient/records')">
-        Medical Records
-      </button>
-      <button @click="$router.push('/patient/profile')">
-        Edit Profile
-      </button>
+    <div class="item" @click="go('/patient/book')">
+      <Calendar class="icon" />
+      <div class="label">Book Appointment</div>
     </div>
-  </section>
+
+    <div class="item" @click="go('/patient/appointments')">
+      <FolderOpen class="icon" />
+      <div class="label">My Appointments</div>
+    </div>
+
+    <div class="item" @click="go('/patient/records')">
+      <FileText class="icon" />
+      <div class="label">Medical Records</div>
+    </div>
+
+    <div class="item" @click="go('/patient/profile')">
+      <User class="icon" />
+      <div class="label">My Profile</div>
+    </div>
+
+  </div>
 </template>
 
 <style scoped>
-.card {
+.quick-box {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.item {
   background: white;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
   padding: 16px;
-}
-h3 {
-  margin: 0 0 12px;
-  font-size: 15px;
-}
-.grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-button {
-  flex: 1;
-  min-width: 150px;
-  padding: 10px;
-  background: #1d3557;
-  color: white;
-  border-radius: 8px;
-  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
   cursor: pointer;
+  text-align: center;
+  transition: transform 0.1s ease;
 }
-button:hover {
-  background: #0f2238;
+
+.item:hover {
+  transform: translateY(-2px);
+}
+
+.icon {
+  width: 28px;
+  height: 28px;
+  stroke: #1d3557;
+}
+
+.label {
+  margin-top: 8px;
+  color: #1d3557;
+  font-size: 14px;
+  font-weight: 600;
 }
 </style>

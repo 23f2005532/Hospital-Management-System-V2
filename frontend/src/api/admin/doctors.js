@@ -22,7 +22,7 @@ export default {
   },
 
   verify(id) {
-    return axios.post(`/admin/doctors/${id}/verify`);
+    return axios.put(`/admin/doctors/${id}/verify`);
   },
 
   toggle(id) {
@@ -42,5 +42,8 @@ export default {
   },
   getSpecializations() {
     return axios.get("/admin/specializations");
-  }
+  },
+  toggleStatus(id) {
+    return axios.put(`/admin/doctors/${id}/toggle-status`);
+  },
 };

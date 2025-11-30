@@ -1,41 +1,45 @@
 <script setup>
-defineProps({
+const props = defineProps({
   title: String,
-  value: [String, Number],
+  value: Number,
   description: String
 });
 </script>
 
 <template>
-  <div class="card">
+  <div class="stat-card">
     <div class="value">{{ value }}</div>
     <div class="title">{{ title }}</div>
-    <div v-if="description" class="desc">{{ description }}</div>
+    <div class="desc">{{ description }}</div>
   </div>
 </template>
 
 <style scoped>
-.card {
+.stat-card {
   background: white;
-  border: 1px solid #e2e8f0;
-  padding: 14px;
-  border-radius: 10px;
-  flex: 1;
-  min-width: 180px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  text-align: center;
 }
+
 .value {
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 800;
   color: #1d3557;
 }
+
 .title {
   margin-top: 6px;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 600;
   color: #475569;
 }
+
 .desc {
-  font-size: 12px;
-  color: #64748b;
   margin-top: 4px;
+  font-size: 13px;
+  color: #64748b;
 }
 </style>

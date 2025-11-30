@@ -1,48 +1,49 @@
 <script setup>
-defineProps({
-  name: { type: String, default: "Patient" }
+import { Hand } from "lucide-vue-next";
+
+const props = defineProps({
+  name: String
 });
 </script>
 
 <template>
-  <section class="welcome">
-    <div class="content">
-      <p class="small">Welcome back,</p>
-      <h2>{{ name }}</h2>
-      <p class="sub">Here is your health summary for today.</p>
+  <div class="welcome">
+    <div class="head">
+      <Hand class="icon" />
+      <h1>Welcome, {{ name }}</h1>
     </div>
-    <div class="badge">Patient Portal</div>
-  </section>
+    <p>Your health summary is ready.</p>
+  </div>
 </template>
 
 <style scoped>
 .welcome {
-  background: #1d3557;
+  background: linear-gradient(135deg, #457b9d, #1d3557);
+  padding: 28px;
+  border-radius: 16px;
   color: white;
-  padding: 22px;
-  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
-.small {
-  margin: 0;
-  opacity: 0.75;
-  font-size: 13px;
+
+.icon {
+  width: 30px;
+  height: 30px;
+  stroke: white;
 }
-h2 {
-  margin: 4px 0;
-  font-size: 24px;
+
+h1 {
+  font-size: 26px;
+  font-weight: 700;
 }
-.sub {
-  margin: 0;
-  opacity: 0.85;
-  font-size: 14px;
-}
-.badge {
-  padding: 8px 16px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.15);
-  font-size: 13px;
+
+p {
+  opacity: 0.9;
+  margin-top: 4px;
 }
 </style>

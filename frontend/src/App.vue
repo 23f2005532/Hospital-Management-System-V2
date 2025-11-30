@@ -2,6 +2,7 @@
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
 import SubHeader from "./components/SubHeader.vue";
+import Toast from "./components/Toast.vue";
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import SubHeader from "./components/SubHeader.vue";
 
   <main class="main-content">
     <router-view />
+    <Toast />
   </main>
 
   <Footer />

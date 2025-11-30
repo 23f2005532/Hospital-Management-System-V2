@@ -6,20 +6,14 @@ from models import Specialization
 def require_admin():
     return get_jwt().get("role", "").upper() == "ADMIN"
 
-
-# Parser for creation & edit
 spec_parser = reqparse.RequestParser()
 spec_parser.add_argument("name", type=str, required=True)
 spec_parser.add_argument("description", type=str, required=False)
-
 
 class AdminSpecializations(Resource):
 
     @jwt_required()
     def get(self):
-        if not require_admin():
-            return {"message": "Admin only"}, 403
-
         session = get_db_session()
         specs = session.query(Specialization).all()
 
@@ -49,7 +43,6 @@ class AdminSpecializations(Resource):
         session.commit()
 
         return {"message": "Specialization created", "id": spec.id}, 201
-
 
 class AdminSpecializationDetail(Resource):
 

@@ -37,7 +37,7 @@ onMounted(loadDoctors);
     <h2>Doctor Availability Manager</h2>
 
     <div class="row">
-      <!-- Doctor Selector -->
+
       <select v-model="selectedDoctor" @change="loadAvailability">
         <option disabled value="">Select Doctor</option>
         <option v-for="d in doctors" :key="d.id" :value="d.id">
@@ -45,7 +45,7 @@ onMounted(loadDoctors);
         </option>
       </select>
 
-      <!-- Add Slot Form -->
+
       <div v-if="selectedDoctor" class="slot-form">
         <select v-model="newSlot.day">
           <option disabled value="">Day</option>
@@ -65,7 +65,7 @@ onMounted(loadDoctors);
       </div>
     </div>
 
-    <!-- Slots Table -->
+
     <table v-if="slots.length" class="availability-table">
       <thead>
         <tr>
@@ -90,16 +90,27 @@ onMounted(loadDoctors);
 </template>
 
 <style scoped>
-.page { padding: 20px; }
-.row { display: flex; gap: 20px; margin-bottom: 20px; }
+.page {
+  padding: 20px;
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
 .availability-table {
   width: 100%;
   border-collapse: collapse;
 }
-.availability-table th, .availability-table td {
+
+.availability-table th,
+.availability-table td {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
+
 .delete-btn {
   background: #ef4444;
   color: white;

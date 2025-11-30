@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from flask_migrate import Migrate
 
-
 db = SQLAlchemy()
 engine = None
 Session = None
@@ -27,7 +26,6 @@ def init_db(app):
         from models import User, UserRole
         from werkzeug.security import generate_password_hash
 
-        # ---- CREATE DEFAULT ADMIN IF NOT EXISTS ----
         session = Session()
 
         default_admin_email = "admin@hospital.com"
@@ -38,7 +36,7 @@ def init_db(app):
             admin = User(
                 name="Super Admin",
                 email=default_admin_email,
-                password=generate_password_hash("admin123"), 
+                password=generate_password_hash("admin123"),
                 role=UserRole.ADMIN
             )
             session.add(admin)

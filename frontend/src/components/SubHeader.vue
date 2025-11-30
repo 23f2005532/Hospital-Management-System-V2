@@ -7,7 +7,7 @@ const auth = useAuthStore();
 const role = computed(() => auth.role?.toUpperCase());
 
 
-// Menu definitions
+
 const patientMenu = [
   { name: "Dashboard", path: "/patient/dashboard" },
   { name: "Book Appointment", path: "/patient/book" },
@@ -18,19 +18,19 @@ const patientMenu = [
 
 const doctorMenu = [
   { name: "Dashboard", path: "/doctor/dashboard" },
-  { name: "My Schedule", path: "/doctor/schedule" },
+  { name: "Availability", path: "/doctor/availability" },
   { name: "Appointments", path: "/doctor/appointments" },
-  { name: "Patients", path: "/doctor/patients" },
-  { name: "Profile", path: "/doctor/profile" }
+
+
 ];
 
 const adminMenu = [
   { name: "Dashboard", path: "/admin/dashboard" },
   { name: "Doctors", path: "/admin/doctors" },
-  { name: "Specializations", path: "/admin/specializations" },
+  { name: "Department", path: "/admin/specializations" },
   { name: "Patients", path: "/admin/patients" },
   { name: "Appointments", path: "/admin/appointments" },
-  { name: "Settings", path: "/admin/settings" },
+
 ];
 
 const activeMenu = computed(() => {
@@ -45,20 +45,15 @@ const activeMenu = computed(() => {
   <section v-if="auth.token" class="subheader">
     <div class="inner">
 
-      <!-- Role Badge -->
+
       <div class="role-badge">
         {{ role }}
       </div>
 
-      <!-- Navigation -->
+
       <nav class="menu">
-        <router-link
-          v-for="item in activeMenu"
-          :key="item.path"
-          class="menu-item"
-          :to="item.path"
-          active-class="active"
-        >
+        <router-link v-for="item in activeMenu" :key="item.path" class="menu-item" :to="item.path"
+          active-class="active">
           {{ item.name }}
         </router-link>
       </nav>
@@ -70,7 +65,7 @@ const activeMenu = computed(() => {
 <style scoped>
 .subheader {
   position: sticky;
-  top: 64px; /* below main header */
+  top: 64px;
   z-index: 9;
 
   background: rgba(255, 255, 255, 0.75);

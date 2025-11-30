@@ -20,7 +20,7 @@
   background: #1d3557;
   color: white;
   padding: 30px 0;
-  margin-top: 40px;
+  /* margin-top: 40px; */
   border-top: 2px solid #0f2238;
 }
 

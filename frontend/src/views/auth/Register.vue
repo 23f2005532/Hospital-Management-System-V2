@@ -1,9 +1,13 @@
 <script setup>
 import { ref, reactive } from "vue";
-import authAPI from "@/api/auth";
+import authAPI from "@/api/auth/auth";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/store/auth";
+import { useToast } from "@/utils/useToast";
 
+import { User, Mail, Lock, Phone, MapPin, Calendar, UserPlus } from "lucide-vue-next";
+
+const toast = useToast();
 const router = useRouter();
 const auth = useAuthStore();
 
@@ -22,79 +26,54 @@ const errors = reactive({});
 const loading = ref(false);
 const apiError = ref("");
 
+
 const validate = () => {
   apiError.value = "";
   Object.keys(errors).forEach((k) => (errors[k] = ""));
+  let ok = true;
 
-  let valid = true;
-
-  if (!form.name.trim()) {
-    errors.name = "Full name is required";
-    valid = false;
-  }
+  if (!form.name.trim()) { errors.name = "Full name required"; ok = false; }
 
   if (!form.email.trim()) {
-    errors.email = "Email is required";
-    valid = false;
+    errors.email = "Email required"; ok = false;
   } else if (!/^\S+@\S+\.\S+$/.test(form.email)) {
-    errors.email = "Enter a valid email";
-    valid = false;
+    errors.email = "Enter valid email"; ok = false;
   }
 
   if (!form.password) {
-    errors.password = "Password is required";
-    valid = false;
+    errors.password = "Password required"; ok = false;
   } else if (form.password.length < 6) {
-    errors.password = "Password must be at least 6 characters";
-    valid = false;
+    errors.password = "Min 6 characters"; ok = false;
   }
 
-  if (!form.confirmPassword) {
-    errors.confirmPassword = "Please confirm your password";
-    valid = false;
-  } else if (form.password !== form.confirmPassword) {
-    errors.confirmPassword = "Passwords do not match";
-    valid = false;
+  if (form.password !== form.confirmPassword) {
+    errors.confirmPassword = "Passwords mismatch"; ok = false;
   }
 
-  if (!form.age) {
-    errors.age = "Age is required";
-    valid = false;
-  } else if (isNaN(Number(form.age)) || Number(form.age) <= 0) {
-    errors.age = "Enter a valid age";
-    valid = false;
+  if (!form.age || Number(form.age) <= 0) {
+    errors.age = "Enter valid age"; ok = false;
   }
 
-  if (!form.gender) {
-    errors.gender = "Please select a gender";
-    valid = false;
-  }
+  if (!form.gender) { errors.gender = "Select gender"; ok = false; }
 
   if (!form.phone.trim()) {
-    errors.phone = "Phone number is required";
-    valid = false;
-  } else if (!/^[0-9+\-\s]{7,15}$/.test(form.phone)) {
-    errors.phone = "Enter a valid phone number";
-    valid = false;
+    errors.phone = "Phone required"; ok = false;
   }
 
   if (!form.address.trim()) {
-    errors.address = "Address is required";
-    valid = false;
+    errors.address = "Address required"; ok = false;
   }
 
-  return valid;
+  return ok;
 };
+
 
 const register = async () => {
   if (!validate()) return;
-
   loading.value = true;
-  apiError.value = "";
 
   try {
-    // send registration with all details
-    await authAPI.register({
+    const res = await authAPI.register({
       name: form.name,
       email: form.email,
       password: form.password,
@@ -104,17 +83,15 @@ const register = async () => {
       address: form.address,
     });
 
-    // auto login after registration (based on backend login)
-    const res = await authAPI.login({
-      email: form.email,
-      password: form.password,
-    });
+    toast.success("Registered Successfully!");
+
 
     auth.setAuth(res.data.token, res.data.role);
-    router.push("/dashboard");
-  } catch (err) {
-    apiError.value =
-      err?.response?.data?.message || "Registration failed. Try a different email.";
+    router.push("/patient/dashboard");
+
+  } catch (e) {
+    apiError.value = e?.response?.data?.message || "Registration failed";
+    toast.error("Registration Failed");
   } finally {
     loading.value = false;
   }
@@ -123,64 +100,78 @@ const register = async () => {
 
 <template>
   <div class="register-page">
-    <div class="card">
 
-      <!-- Left side: Intro -->
+    <div class="glass-card">
+
+
       <div class="left">
-        <h1>Create your account</h1>
-        <p class="subtitle">
-          Register as a patient to book appointments, view your medical history,
-          and manage your health in one place.
+        <UserPlus class="big-icon" />
+        <h1>Create Your Patient Account</h1>
+        <p class="tagline">
+          Join our smart healthcare system and take control of your medical journey.
         </p>
 
-        <ul class="highlights">
-          <li>✔ Easy appointment booking</li>
-          <li>✔ Secure medical records</li>
-          <li>✔ Access anywhere, anytime</li>
+        <ul class="features">
+          <li>Easy appointment booking</li>
+          <li>Access digital records anytime</li>
+          <li>Track doctor visits & prescriptions</li>
         </ul>
       </div>
 
-      <!-- Right side: Form -->
+
       <div class="right">
-        <form @submit.prevent="register" class="form">
+        <form @submit.prevent="register">
+
+
           <div class="row">
             <div class="field">
-              <label>Full Name</label>
-              <input v-model="form.name" type="text" placeholder="John Doe" />
+              <label>Name</label>
+              <div class="input-group">
+                <User class="icon" />
+                <input v-model="form.name" placeholder="Full Name" />
+              </div>
               <p v-if="errors.name" class="error">{{ errors.name }}</p>
             </div>
 
             <div class="field">
               <label>Email</label>
-              <input v-model="form.email" type="email" placeholder="you@example.com" />
+              <div class="input-group">
+                <Mail class="icon" />
+                <input v-model="form.email" placeholder="Email Address" />
+              </div>
               <p v-if="errors.email" class="error">{{ errors.email }}</p>
             </div>
           </div>
 
+
           <div class="row">
             <div class="field">
               <label>Password</label>
-              <input v-model="form.password" type="password" placeholder="••••••••" />
+              <div class="input-group">
+                <Lock class="icon" />
+                <input type="password" v-model="form.password" placeholder="Password" />
+              </div>
               <p v-if="errors.password" class="error">{{ errors.password }}</p>
             </div>
 
             <div class="field">
               <label>Confirm Password</label>
-              <input
-                v-model="form.confirmPassword"
-                type="password"
-                placeholder="Re-enter password"
-              />
-              <p v-if="errors.confirmPassword" class="error">
-                {{ errors.confirmPassword }}
-              </p>
+              <div class="input-group">
+                <Lock class="icon" />
+                <input type="password" v-model="form.confirmPassword" placeholder="Confirm" />
+              </div>
+              <p v-if="errors.confirmPassword" class="error">{{ errors.confirmPassword }}</p>
             </div>
           </div>
+
 
           <div class="row">
             <div class="field small">
               <label>Age</label>
-              <input v-model="form.age" type="number" min="1" placeholder="25" />
+              <div class="input-group">
+                <Calendar class="icon" />
+                <input type="number" v-model="form.age" placeholder="Age" />
+              </div>
               <p v-if="errors.age" class="error">{{ errors.age }}</p>
             </div>
 
@@ -197,102 +188,114 @@ const register = async () => {
 
             <div class="field">
               <label>Phone</label>
-              <input v-model="form.phone" type="text" placeholder="+91 98765 43210" />
+              <div class="input-group">
+                <Phone class="icon" />
+                <input v-model="form.phone" placeholder="Phone Number" />
+              </div>
               <p v-if="errors.phone" class="error">{{ errors.phone }}</p>
             </div>
           </div>
 
+
           <div class="field">
             <label>Address</label>
-            <textarea
-              v-model="form.address"
-              rows="2"
-              placeholder="Street, City, State"
-            ></textarea>
+            <div class="input-group textarea">
+              <MapPin class="icon top" />
+              <textarea rows="2" v-model="form.address" placeholder="Full Address"></textarea>
+            </div>
             <p v-if="errors.address" class="error">{{ errors.address }}</p>
           </div>
 
           <p v-if="apiError" class="error global">{{ apiError }}</p>
 
-          <button class="submit-btn" type="submit" :disabled="loading">
-            {{ loading ? "Creating account..." : "Create account" }}
+          <button class="btn" :disabled="loading">
+            {{ loading ? "Creating Account..." : "Create Account" }}
           </button>
 
-          <p class="login-link">
+          <p class="login-text">
             Already have an account?
-            <router-link to="/login">Login here</router-link>
+            <router-link to="/login/patient">Login</router-link>
           </p>
+
         </form>
       </div>
     </div>
+
   </div>
 </template>
 
 <style scoped>
 .register-page {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #c8f4f8, #a8e6ec, #7ddce6);
   display: flex;
   justify-content: center;
-  padding: 40px 16px;
+  align-items: center;
+  padding: 40px;
 }
 
-.card {
+
+.glass-card {
   display: flex;
   gap: 32px;
-  max-width: 1000px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 1100px;
   width: 100%;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-  padding: 32px 32px 36px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
 }
 
-/* Left side */
+
 .left {
   flex: 1;
-  border-right: 1px solid #e5e7eb;
   padding-right: 24px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.big-icon {
+  width: 62px;
+  height: 62px;
+  color: #0077b6;
+  margin-bottom: 12px;
 }
 
 .left h1 {
-  font-size: 28px;
-  margin-bottom: 10px;
-  color: #1d3557;
+  color: #023047;
+  margin-bottom: 8px;
+  font-size: 26px;
+  font-weight: 700;
 }
 
-.subtitle {
-  font-size: 14px;
-  color: #4b5563;
+.tagline {
+  color: #374151;
   margin-bottom: 18px;
 }
 
-.highlights {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  color: #374151;
-  font-size: 14px;
+.features {
+  font-size: 15px;
+  color: #1f2937;
 }
 
-.highlights li {
-  margin-bottom: 6px;
-}
 
-/* Right side (form) */
 .right {
-  flex: 1.4;
+  flex: 1.2;
 }
 
-.form {
+form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
+
 
 .row {
   display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 16px;
 }
+
 
 .field {
   flex: 1;
@@ -301,100 +304,112 @@ const register = async () => {
 }
 
 .field.small {
-  max-width: 140px;
+  max-width: 160px;
 }
 
 label {
   font-size: 13px;
+  margin-bottom: 5px;
+  color: #023047;
+}
+
+
+.input-group {
+  position: relative;
+  max-width: 85%;
+}
+
+.input-group.textarea {
+  align-items: start;
+  max-width: 100%;
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 12px;
+  width: 18px;
+  height: 18px;
   color: #374151;
-  margin-bottom: 4px;
+}
+
+.icon.top {
+  top: 14px;
 }
 
 input,
 select,
 textarea {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 8px 10px;
+  width: 85%;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid #b9c7d3;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
   font-size: 14px;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  color: #1e293b;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: #1d3557;
-  box-shadow: 0 0 0 1px rgba(29, 53, 87, 0.1);
-}
 
 textarea {
-  resize: vertical;
+  padding-top: 34px;
 }
 
+
 .error {
-  color: #b91c1c;
+  margin-top: 4px;
   font-size: 12px;
-  margin-top: 2px;
+  color: #b91c1c;
 }
 
 .error.global {
-  margin-top: 6px;
   text-align: center;
 }
 
-.submit-btn {
-  margin-top: 10px;
-  padding: 10px 18px;
-  background: #1d3557;
-  color: white;
+
+.btn {
+  margin-top: 4px;
+  background: #0077b6;
+  padding: 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
+  color: white;
   font-weight: 600;
   cursor: pointer;
-  font-size: 15px;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: 0.2s;
 }
 
-.submit-btn:hover:enabled {
-  background: #16304a;
-  transform: translateY(-1px);
+.btn:hover {
+  background: #005f88;
 }
 
-.submit-btn:disabled {
-  opacity: 0.7;
+.btn:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.login-link {
-  margin-top: 8px;
-  font-size: 14px;
+
+.login-text {
   text-align: center;
+  font-size: 14px;
 }
 
-.login-link a {
-  color: #1d3557;
-  text-decoration: none;
+.login-text a {
+  color: #023047;
   font-weight: 600;
 }
 
-.login-link a:hover {
-  text-decoration: underline;
-}
 
-/* Responsive */
 @media (max-width: 900px) {
-  .card {
+  .glass-card {
     flex-direction: column;
-    padding: 24px 18px;
+    padding: 24px;
   }
 
   .left {
     border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    padding-right: 0;
-    padding-bottom: 16px;
-    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 14px;
   }
 }
 </style>

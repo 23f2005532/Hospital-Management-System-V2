@@ -21,26 +21,24 @@ const toggleDropdown = () => {
 <template>
   <header class="header">
     <div class="container">
-      <!-- Logo / Brand -->
+
       <div class="brand" @click="router.push('/')">
         <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" alt="logo" />
         <span>Smart Hospital</span>
       </div>
 
-      <!-- Navigation Links -->
+
       <nav class="nav">
         <router-link to="/">Home</router-link>
+        <router-link to="/about">About Us</router-link>
+        <router-link to="/contact">Contact Us</router-link>
 
-        <!-- Logout (only if logged in) -->
-        <button
-          v-if="auth.token"
-          class="logout-btn"
-          @click="logout"
-        >
+
+        <button v-if="auth.token" class="logout-btn" @click="logout">
           Logout
         </button>
 
-        <!-- Login Dropdown (only if NOT logged in) -->
+
         <div v-if="!auth.token" class="login-dropdown-wrapper">
           <button class="login-btn" @click="toggleDropdown">
             Login ▾
@@ -153,7 +151,7 @@ const toggleDropdown = () => {
   border-radius: 6px;
   padding: 8px 0;
 
-  box-shadow: 0px 3px 10px rgba(0,0,0,0.18);
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.18);
   z-index: 20;
 }
 

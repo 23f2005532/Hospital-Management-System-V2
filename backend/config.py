@@ -1,4 +1,4 @@
-import os 
+import os
 from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -9,9 +9,8 @@ class Config:
     SQLALCHEMY_DATABASE_URI = None
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    #Session and Cookie Settings
     SESSION_COOKIE_NAME = "session"
-    PERMANENT_SESSION_LIFETIME = timedelta(days=7) 
+    PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
     FRONT_END_BASE = os.getenv("FRONT_END_BASE", "http://localhost:5173")
     CORS_ORIGIN = FRONT_END_BASE
@@ -33,4 +32,9 @@ class LocalDevelopmentConfig(Config):
     JWT_HEADER_NAME = "Authorization"
     JWT_HEADER_TYPE = "Bearer"
 
-    
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = ("Smart Hospital", "ehteshamansariadn@gmail.com")

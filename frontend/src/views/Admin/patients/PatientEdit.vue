@@ -11,15 +11,33 @@ const patient = ref(null);
 const loading = ref(true);
 
 const loadPatient = async () => {
-  const res = await patientAPI.getPatient(id);
-  patient.value = res.data;
+  try {
+    const res = await patientAPI.getPatient(id);
+    patient.value = res.data;
+  } catch (e) {
+    console.error("Failed to load patient:", e);
+  }
   loading.value = false;
 };
 
 const save = async () => {
-  await patientAPI.updatePatient(id, patient.value);
-  alert("Patient updated.");
-  router.push("/admin/patients");
+  try {
+    const payload = {
+      name: patient.value.user.name,
+      email: patient.value.user.email,
+      age: patient.value.age,
+      gender: patient.value.gender,
+      phone: patient.value.phone,
+      address: patient.value.address
+    };
+
+    await patientAPI.updatePatient(id, payload);
+    alert("Patient updated.");
+    router.push("/admin/patients");
+  } catch (e) {
+    console.error("Update failed:", e);
+    alert("Error while saving patient.");
+  }
 };
 
 onMounted(loadPatient);
@@ -27,84 +45,164 @@ onMounted(loadPatient);
 
 <template>
   <div class="page">
-    <h1 class="title">Edit Patient</h1>
 
-    <div v-if="loading">Loading...</div>
 
-    <form v-else class="form">
-      <div class="row">
-        <label>Name</label>
-        <input v-model="patient.name" />
-      </div>
+    <div class="header-card">
+      <h1>Edit Patient</h1>
+      <p>Modify patient details and update profile information.</p>
+    </div>
 
-      <div class="row">
-        <label>Email</label>
-        <input v-model="patient.email" />
-      </div>
+    <div v-if="loading" class="loading-box">
+      <div class="loader"></div>
+      Loading patient...
+    </div>
 
-      <div class="row">
-        <label>Age</label>
-        <input type="number" v-model="patient.age" />
-      </div>
+    <div v-else class="form-box">
+      <form class="form">
 
-      <div class="row">
-        <label>Gender</label>
-        <select v-model="patient.gender">
-          <option>Male</option>
-          <option>Female</option>
-          <option>Other</option>
-        </select>
-      </div>
+        <div class="field">
+          <label>Name</label>
+          <input v-model="patient.user.name" />
+        </div>
 
-      <div class="row">
-        <label>Phone</label>
-        <input v-model="patient.phone" />
-      </div>
+        <div class="field">
+          <label>Email</label>
+          <input v-model="patient.user.email" />
+        </div>
 
-      <div class="row">
-        <label>Address</label>
-        <textarea v-model="patient.address"></textarea>
-      </div>
+        <div class="field">
+          <label>Age</label>
+          <input type="number" v-model.number="patient.age" />
+        </div>
 
-      <button class="save-btn" @click.prevent="save">Save Changes</button>
-    </form>
+        <div class="field">
+          <label>Gender</label>
+          <select v-model="patient.gender">
+            <option disabled value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Phone</label>
+          <input v-model="patient.phone" />
+        </div>
+
+        <div class="field">
+          <label>Address</label>
+          <textarea v-model="patient.address"></textarea>
+        </div>
+
+        <button class="btn-primary" @click.prevent="save">
+          Save Changes
+        </button>
+
+      </form>
+    </div>
+
   </div>
 </template>
 
 <style scoped>
 .page {
-  padding: 24px;
+  padding: 26px;
+  max-width: 850px;
+  margin: auto;
 }
-.title {
-  font-size: 26px;
-  margin-bottom: 20px;
+
+
+.header-card {
+  background: linear-gradient(135deg, #1d3557, #457b9d);
+  padding: 26px;
+  border-radius: 14px;
+  margin-bottom: 26px;
+  color: white;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
+
+.header-card h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.header-card p {
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+
+.loading-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  color: #475569;
+}
+
+.loader {
+  width: 22px;
+  height: 22px;
+  border: 4px solid #cbd5e1;
+  border-top-color: #1d3557;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+
+.form-box {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
 .form {
-  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
-.row {
-  margin-bottom: 14px;
-}
-.row label {
+
+.field label {
   font-weight: 600;
-  display: block;
   margin-bottom: 4px;
 }
-.row input,
-.row select,
-.row textarea {
+
+.field input,
+.field select,
+.field textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
 }
-.save-btn {
+
+textarea {
+  resize: vertical;
+}
+
+
+.btn-primary {
   margin-top: 16px;
-  padding: 10px 18px;
   background: #1d3557;
-  border: none;
   color: white;
-  border-radius: 4px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
+  width: 180px;
+  transition: 0.2s;
+}
+
+.btn-primary:hover {
+  background: #173049;
 }
 </style>
